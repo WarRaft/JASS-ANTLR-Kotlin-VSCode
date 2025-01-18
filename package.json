@@ -1,0 +1,70 @@
+{
+  "version": "0.0.1",
+  "license": "MIT",
+  "author": "WarRaft",
+  "publisher": "WarRaft",
+  "name": "jass-antlr-kotlin",
+  "displayName": "JASS-ANTLR-Kotlin",
+  "contributors": [],
+  "description": "Tools for develop WarCraft III maps.",
+  "private": false,
+  "icon": "images/logo.png",
+  "pricing": "Free",
+  "keywords": [
+    "warcraft"
+  ],
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WarRaft/JASS-ANTLR-Kotlin-VSCode"
+  },
+  "bugs": {
+    "url": "https://github.com/WarRaft/JASS-ANTLR-Kotlin-VSCode/issues"
+  },
+  "main": "./extension/extension.js",
+  "scripts": {
+    "publish": "vsce publish patch"
+  },
+  "commands": [
+    {
+      "command": "extension.startServer",
+      "title": "Start LSP Server"
+    }
+  ],
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.96.0",
+    "@vscode/vsce": "^3.2.1"
+  },
+  "configurationDefaults": {
+    "jass": {
+      "editor.semanticHighlighting.enabled": true
+    }
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "jass",
+        "aliases": [
+          "JASS",
+          "jass"
+        ],
+        "extensions": [
+          "j"
+        ],
+        "icon": {
+          "light": "./icons/beetle.svg",
+          "dark": "./icons/beetle.svg"
+        },
+        "configuration": "./src/jass/syntaxes/language-configuration.json"
+      }
+    ]
+  }
+}
