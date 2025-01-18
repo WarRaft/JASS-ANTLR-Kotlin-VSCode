@@ -1,4 +1,5 @@
 plugins {
+    id("java")
     // https://kotlinlang.org/docs/gradle-configure-project.html
     kotlin("jvm") version "2.1.0"
 }
@@ -8,8 +9,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.19.0")
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.19.0")
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.23.1")
 }
 
 java {

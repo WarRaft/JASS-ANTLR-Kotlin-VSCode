@@ -1,6 +1,7 @@
 const path = require('path');
 const {LanguageClient, TransportKind} = require('vscode-languageclient/node');
 
+// noinspection JSUnusedGlobalSymbols
 module.exports = {
     activate(context) {
         const p = path.join(__dirname, '..', 'build', 'libs', 'ANTLR-LSP.jar')
