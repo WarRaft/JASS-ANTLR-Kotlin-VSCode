@@ -10,7 +10,7 @@ module.exports = {
     activate(context) {
         const executable = {
             command: 'java',
-            args: ['-jar', path.join(__dirname, '..', 'build', 'libs', 'ANTLR-LSP.jar')],
+            args: ['-jar', path.join(__dirname, '..', 'build', 'libs', 'jass-antlr-lsp.jar')],
             options: {
                 env: process.env,
             },
