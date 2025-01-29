@@ -1,6 +1,5 @@
 package raft.war.jass.lsp
 
-import io.github.warraft.jass.antlr.JassParser
 import io.github.warraft.jass.antlr.JassParser.ParamContext
 import io.github.warraft.jass.antlr.JassParser.VariableContext
 import io.github.warraft.jass.antlr.JassState
