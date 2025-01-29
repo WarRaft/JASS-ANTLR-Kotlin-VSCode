@@ -1,5 +1,6 @@
 plugins {
     id("java")
+
     // https://kotlinlang.org/docs/gradle-configure-project.html
     kotlin("jvm") version "2.1.0"
 }
@@ -9,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    //implementation("io.github.warraft:jass-antlr:0.0.20")
+    implementation(files("/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin/build/libs/JASS-ANTLR.jar"))
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.23.1")
 }
