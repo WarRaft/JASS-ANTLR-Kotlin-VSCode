@@ -1,5 +1,5 @@
 plugins {
-    id("java")
+    java
 
     // https://kotlinlang.org/docs/gradle-configure-project.html
     kotlin("jvm") version "2.1.0"
@@ -14,6 +14,10 @@ dependencies {
     implementation(files("/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin/build/libs/JASS-ANTLR.jar"))
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.23.1")
+    implementation(kotlin("test"))
+
+    testImplementation(kotlin("test"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }
 
 java {
@@ -37,4 +41,8 @@ tasks.jar {
 
     archiveBaseName.set("ANTLR")
     archiveVersion.set("LSP")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

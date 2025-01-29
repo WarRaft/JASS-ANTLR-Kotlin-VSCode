@@ -1,6 +1,9 @@
 const path = require('path');
 const {LanguageClient} = require('vscode-languageclient');
 const {TransportKind} = require("vscode-languageclient/node");
+const {workspace} = require("vscode");
+
+let client;
 
 // noinspection JSUnusedGlobalSymbols
 module.exports = {
@@ -11,7 +14,7 @@ module.exports = {
             options: {
                 env: process.env,
             },
-            transportKind: TransportKind.stdio,
+            transport: TransportKind.stdio,
         }
 
         const serverOptions = {
@@ -24,22 +27,31 @@ module.exports = {
                 scheme: 'file',
                 language: 'jass',
             }],
+            synchronize: {
+                fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
+            }
         }
 
-        const client = new LanguageClient(
-            'AntlrJassLsp',
-            'AntlrJassLspClient',
+        client = new LanguageClient(
+            'JassAntlrLsp',
+            'JassAntlrLspClient',
             serverOptions,
             clientOptions
         )
 
         client.trace = 2; // Trace.Verbose
 
-        context.subscriptions.push(client.start())
-
         client.onNotification('window/logMessage', params => {
-            const messageType = ['Error', 'Warning', 'Info', 'Log'][params.type - 1];
-            console.log(`[${messageType}] ${params.message}`);
+            console.log(`${params.message}`);
         });
+
+        context.subscriptions.push(client.start())
     },
+
+    deactivate() {
+        if (!client) {
+            return undefined;
+        }
+        return client.stop();
+    }
 }

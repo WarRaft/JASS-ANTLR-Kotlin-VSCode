@@ -6,5 +6,6 @@
     "out": true
   },
   "typescript.tsc.autoDetect": "off",
-  "AntlrJassLspClient.trace.server": "verbose"
+  "JassAntlrLspClient.trace.server": "verbose",
+  "languageServer.logging": "verbose"
 }
