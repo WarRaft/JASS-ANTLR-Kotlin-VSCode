@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     //implementation("io.github.warraft:jass-antlr:0.0.20")
-    implementation(files("/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin/build/libs/JASS-ANTLR.jar"))
+    implementation(files("/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin/build/libs/jass-antlr.jar"))
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.23.1")
     implementation(kotlin("test"))
@@ -39,8 +39,8 @@ tasks.jar {
 
     exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA")
 
-    archiveBaseName.set("ANTLR")
-    archiveVersion.set("LSP")
+    archiveBaseName.set("jass")
+    archiveVersion.set("antlr-lsp")
 }
 
 tasks.test {
