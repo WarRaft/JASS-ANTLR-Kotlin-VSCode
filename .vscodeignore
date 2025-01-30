@@ -1,7 +1,6 @@
 *
 **
-!/extension/
-!/build/libs
-!/out/
+!extension/**
+!build/libs/**
+!sdk/**
 !LICENSE
-!/sdk/
