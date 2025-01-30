@@ -1,2 +1,5 @@
 # JASS-ANTLR-Kotlin-VSCode
-JASS Syntax Highlight
+
+- Requires [Java](https://www.java.com/en/download) installed
+
+JASS syntax highlight.

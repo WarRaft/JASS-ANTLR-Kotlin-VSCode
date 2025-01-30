@@ -1,20 +1,48 @@
 package raft.war.jass.lsp.token
 
+import org.antlr.v4.runtime.CommonToken
 import org.antlr.v4.runtime.tree.TerminalNode
 
 class TokenHub {
     val lines = mutableMapOf<Int, TokenLine>()
+
+    fun add(
+        line: Int,
+        pos: Int,
+        len: Int,
+        type: TokenType,
+        modifier: TokenModifier? = null,
+    ) {
+        val t = Token(
+            line = line,
+            pos = pos,
+            len = len,
+            type = type,
+            modifier = modifier
+        )
+        lines.getOrPut(t.line) { TokenLine(index = t.line) }.add(t)
+    }
+
+    fun add(token: CommonToken, type: TokenType, modifier: TokenModifier? = null) {
+        add(
+            line = token.line - 1,
+            pos = token.charPositionInLine,
+            len = token.text.length,
+            type = type,
+            modifier = modifier
+        )
+    }
+
     fun add(node: TerminalNode?, type: TokenType, modifier: TokenModifier? = null) {
         if (node == null) return
         val s = node.symbol
-        val t = Token(
+        add(
             line = s.line - 1,
             pos = s.charPositionInLine,
             len = s.text.length,
             type = type,
             modifier = modifier
         )
-        lines.getOrPut(t.line) { TokenLine(index = t.line) }.add(t)
     }
 
     fun data(): MutableList<Int> {

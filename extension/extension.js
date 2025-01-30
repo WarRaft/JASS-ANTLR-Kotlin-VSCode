@@ -1,14 +1,18 @@
 const path = require('path');
 const {LanguageClient} = require('vscode-languageclient');
 const {TransportKind} = require("vscode-languageclient/node");
-const {workspace} = require("vscode");
+// noinspection NpmUsedModulesInstalled
+const {workspace, Uri} = require("vscode");
 
-let client;
+/** @type {LanguageClient} */ let client;
 
 // https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 
+// https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
+
 // noinspection JSUnusedGlobalSymbols
 module.exports = {
+    /** @param {ExtensionContext} context */
     activate(context) {
         const executable = {
             command: 'java',
@@ -41,13 +45,21 @@ module.exports = {
             clientOptions
         )
 
-        client.trace = 2; // Trace.Verbose
-
         client.onNotification('window/logMessage', params => {
             console.log(`${params.message}`);
         });
 
-        context.subscriptions.push(client.start())
+        client.start()
+
+        workspace.updateWorkspaceFolders(
+            workspace.workspaceFolders?.length ?? 0,
+            null,
+            {
+                uri: Uri.file(path.join(context.extensionPath, 'sdk')),
+                name: "JASS"
+            }
+        );
+        // const ext = extensions.getExtension('WarRaft.jass-antlr-kotlin')
     },
 
     deactivate() {

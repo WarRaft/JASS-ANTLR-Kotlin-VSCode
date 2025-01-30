@@ -10,6 +10,7 @@ import io.github.warraft.jass.antlr.psi.JassLoop
 import io.github.warraft.jass.antlr.psi.JassReturn
 import io.github.warraft.jass.antlr.psi.JassVar
 import org.antlr.v4.runtime.CharStreams
+import org.antlr.v4.runtime.tree.TerminalNode
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.TextDocumentService
@@ -122,15 +123,78 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
         }
     }
 
+    fun semanticFun(f: JassFun, hub: TokenHub) {
+        val ctx = f.ctx
+
+        fun head(id: TerminalNode, tk: TakesContext, rt: ReturnsRuleContext) {
+            hub.add(tk.TAKES(), TokenType.KEYWORD)
+            hub.add(tk.NOTHING(), TokenType.TYPE)
+
+            hub.add(rt.RETURNS(), TokenType.KEYWORD)
+            hub.add(rt.NOTHING(), TokenType.TYPE)
+            hub.add(rt.ID(), TokenType.TYPE)
+
+            hub.add(id, TokenType.FUNCTION, TokenModifier.DECLARATION)
+        }
+
+        if (ctx is NativeRuleContext) {
+            hub.add(ctx.CONSTANT(), TokenType.KEYWORD)
+            hub.add(ctx.NATIVE(), TokenType.KEYWORD)
+            head(ctx.ID(), ctx.takes(), ctx.returnsRule())
+        }
+
+
+        if (ctx is FunctionContext) {
+            hub.add(ctx.FUNCTION(), TokenType.KEYWORD)
+            hub.add(ctx.ENDFUNCTION(), TokenType.KEYWORD)
+            head(ctx.ID(), ctx.takes(), ctx.returnsRule())
+        }
+
+        for (p in f.param) {
+            val c = p.ctx
+            when (c) {
+                is ParamContext -> {
+                    hub.add(c.typename().ID(), TokenType.TYPE)
+                    hub.add(c.varname().ID(), TokenType.PARAMETER, TokenModifier.DECLARATION)
+                }
+
+                is VariableContext -> {
+                    hub.add(c.LOCAL(), TokenType.KEYWORD)
+                    hub.add(c.ARRAY(), TokenType.KEYWORD)
+                    hub.add(c.typename().ID(), TokenType.TYPE)
+                    hub.add(c.varname().ID(), TokenType.PARAMETER, TokenModifier.DECLARATION)
+                }
+            }
+        }
+
+        semanticStmt(f.stmt, hub)
+    }
+
     override fun semanticTokensFull(params: SemanticTokensParams?): CompletableFuture<SemanticTokens> {
         val state = states[params?.textDocument?.uri]
         if (state == null) return CompletableFuture.completedFuture(SemanticTokens())
 
         val hub = TokenHub()
 
-        for (ctx in state.globalsCtx) {
-            hub.add(ctx.GLOBALS(), TokenType.KEYWORD)
-            hub.add(ctx.ENDGLOBALS(), TokenType.KEYWORD)
+        for (c in state.comments) {
+            hub.add(c, TokenType.COMMENT)
+        }
+
+        for (t in state.types) {
+            val ctx = t.ctx
+            if (ctx is TypeContext) {
+                hub.add(ctx.TYPE(), TokenType.KEYWORD)
+                hub.add(ctx.typename().ID(), TokenType.TYPE, TokenModifier.DECLARATION)
+                val ext = ctx.extendsRule()
+                hub.add(ext.EXTENDS(), TokenType.KEYWORD)
+                hub.add(ext.typename().ID(), TokenType.TYPE)
+            }
+        }
+
+
+        for (g in state.globalsCtx) {
+            hub.add(g.GLOBALS(), TokenType.KEYWORD)
+            hub.add(g.ENDGLOBALS(), TokenType.KEYWORD)
         }
 
         for (g in state.globals) {
@@ -143,43 +207,12 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
             }
         }
 
+        for (f in state.natives) {
+            semanticFun(f, hub)
+        }
+
         for (f in state.functions) {
-            val ctx = f.ctx
-
-            if (ctx is FunctionContext) {
-                hub.add(ctx.FUNCTION(), TokenType.KEYWORD)
-                hub.add(ctx.ENDFUNCTION(), TokenType.KEYWORD)
-
-                val tk = ctx.takes()
-                hub.add(tk.TAKES(), TokenType.KEYWORD)
-                hub.add(tk.NOTHING(), TokenType.TYPE)
-
-                val rt = ctx.returnsRule()
-                hub.add(rt.RETURNS(), TokenType.KEYWORD)
-                hub.add(rt.NOTHING(), TokenType.TYPE)
-                hub.add(rt.ID(), TokenType.TYPE)
-
-                hub.add(ctx.ID(), TokenType.FUNCTION, TokenModifier.DECLARATION)
-            }
-
-            for (p in f.param) {
-                val c = p.ctx
-                when (c) {
-                    is ParamContext -> {
-                        hub.add(c.typename().ID(), TokenType.TYPE)
-                        hub.add(c.varname().ID(), TokenType.PARAMETER, TokenModifier.DECLARATION)
-                    }
-
-                    is VariableContext -> {
-                        hub.add(c.LOCAL(), TokenType.KEYWORD)
-                        hub.add(c.ARRAY(), TokenType.KEYWORD)
-                        hub.add(c.typename().ID(), TokenType.TYPE)
-                        hub.add(c.varname().ID(), TokenType.PARAMETER, TokenModifier.DECLARATION)
-                    }
-                }
-            }
-
-            semanticStmt(f.stmt, hub)
+            semanticFun(f, hub)
         }
 
         return CompletableFuture.completedFuture(SemanticTokens(hub.data()))
@@ -200,6 +233,7 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
     }
 
     private fun stateUpdate(uri: String, text: String) {
+        server.log(uri)
         states.getOrPut(uri) { JassState() }.parse(CharStreams.fromString(text))
     }
 

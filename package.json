@@ -61,8 +61,8 @@
           "j"
         ],
         "icon": {
-          "light": "./icons/beetle.svg",
-          "dark": "./icons/beetle.svg"
+          "light": "./icons/jass.svg",
+          "dark": "./icons/jass.svg"
         },
         "configuration": "./src/jass/syntaxes/language-configuration.json"
       }
