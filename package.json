@@ -8,10 +8,10 @@
   "contributors": [],
   "description": "Tools for develop WarCraft III maps.",
   "private": false,
-  "icon": "images/logo.png",
+  "icon": "images/logo.jpg",
   "pricing": "Free",
   "keywords": [
-    "warcraft"
+    "warcraft", "ujapi"
   ],
   "engines": {
     "vscode": "^1.96.0"
@@ -37,12 +37,11 @@
     }
   ],
   "dependencies": {
-    "vscode": "^1.1.37",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@types/vscode": "^1.96.0",
-    "@vscode/vsce": "^3.2.1"
+    "@vscode/vsce": "^3.2.2"
   },
   "configurationDefaults": {
     "jass": {

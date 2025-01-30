@@ -1,0 +1,6 @@
+*
+!/extension/
+!/build/libs
+!/out/
+!LICENSE
+!/sdk/
