@@ -3,4 +3,6 @@
 !extension/**
 !build/libs/**
 !sdk/**
+!icons/**
+!images/**
 !LICENSE
