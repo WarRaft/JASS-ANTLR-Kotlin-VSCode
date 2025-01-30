@@ -1,9 +1,14 @@
 package raft.war.jass.lsp
 
-import io.github.warraft.jass.antlr.JassParser.ParamContext
-import io.github.warraft.jass.antlr.JassParser.VariableContext
+import io.github.warraft.jass.antlr.JassParser.*
 import io.github.warraft.jass.antlr.JassState
 import io.github.warraft.jass.antlr.psi.IJassNode
+import io.github.warraft.jass.antlr.psi.JassExitWhen
+import io.github.warraft.jass.antlr.psi.JassFun
+import io.github.warraft.jass.antlr.psi.JassIf
+import io.github.warraft.jass.antlr.psi.JassLoop
+import io.github.warraft.jass.antlr.psi.JassReturn
+import io.github.warraft.jass.antlr.psi.JassVar
 import org.antlr.v4.runtime.CharStreams
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
@@ -20,7 +25,7 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
         val highlights = mutableListOf<DocumentHighlight>()
         val position = params?.position
 
-        if (position != null && false) {
+        if (position == null) {
             highlights.add(
                 DocumentHighlight(
                     Range(
@@ -46,7 +51,75 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
     }
 
     fun semanticStmt(nodes: List<IJassNode>, hub: TokenHub) {
+        for (node in nodes) {
+            when (node) {
+                is JassVar -> {
+                    val ctx = node.ctx
+                    if (ctx is StmtSetContext) {
+                        hub.add(ctx.set().SET(), TokenType.KEYWORD)
+                        hub.add(ctx.set().ID(), TokenType.VARIABLE)
+                    }
+                }
 
+                is JassFun -> {
+                    val ctx = node.ctx
+                    if (ctx is CallContext) {
+                        hub.add(ctx.CALL(), TokenType.KEYWORD)
+                        hub.add(ctx.DEBUG(), TokenType.KEYWORD)
+                        hub.add(ctx.ID(), TokenType.FUNCTION)
+                    }
+                }
+
+                is JassIf -> {
+                    var ctx = node.ctx
+                    if (ctx is IfRuleContext) {
+                        hub.add(ctx.IF(), TokenType.KEYWORD)
+                        hub.add(ctx.THEN(), TokenType.KEYWORD)
+                        hub.add(ctx.ENDIF(), TokenType.KEYWORD)
+                    }
+                    semanticStmt(node.stmt, hub)
+
+                    for (elseif in node.elseifs) {
+                        val ctx = elseif.ctx
+                        if (ctx is ElseifContext) {
+                            hub.add(ctx.ELSEIF(), TokenType.KEYWORD)
+                            hub.add(ctx.THEN(), TokenType.KEYWORD)
+                        }
+                        semanticStmt(elseif.stmt, hub)
+                    }
+
+                    val elser = node.elser
+                    val elsectx = elser?.ctx
+                    if (elsectx is ElseRuleContext) {
+                        hub.add(elsectx.ELSE(), TokenType.KEYWORD)
+                        semanticStmt(elser.stmt, hub)
+                    }
+                }
+
+                is JassLoop -> {
+                    var ctx = node.ctx
+                    if (ctx is LoopContext) {
+                        hub.add(ctx.LOOP(), TokenType.KEYWORD)
+                        hub.add(ctx.ENDLOOP(), TokenType.KEYWORD)
+                        semanticStmt(node.stmt, hub)
+                    }
+                }
+
+                is JassExitWhen -> {
+                    var ctx = node.ctx
+                    if (ctx is ExitwhenContext) {
+                        hub.add(ctx.EXITWHEN(), TokenType.KEYWORD)
+                    }
+                }
+
+                is JassReturn -> {
+                    var ctx = node.ctx
+                    if (ctx is ReturnRuleContext) {
+                        hub.add(ctx.RETURN(), TokenType.KEYWORD)
+                    }
+                }
+            }
+        }
     }
 
     override fun semanticTokensFull(params: SemanticTokensParams?): CompletableFuture<SemanticTokens> {
@@ -55,23 +128,39 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
 
         val hub = TokenHub()
 
+        for (ctx in state.globalsCtx) {
+            hub.add(ctx.GLOBALS(), TokenType.KEYWORD)
+            hub.add(ctx.ENDGLOBALS(), TokenType.KEYWORD)
+        }
+
+        for (g in state.globals) {
+            val ctx = g.ctx
+            if (ctx is VariableContext) {
+                hub.add(ctx.CONSTANT(), TokenType.KEYWORD)
+                hub.add(ctx.ARRAY(), TokenType.KEYWORD)
+                hub.add(ctx.varname().ID(), TokenType.VARIABLE, TokenModifier.DECLARATION)
+                hub.add(ctx.typename().ID(), TokenType.TYPE)
+            }
+        }
+
         for (f in state.functions) {
-            val c = f.ctx
-            if (c == null) continue
+            val ctx = f.ctx
 
-            hub.add(c.FUNCTION(), TokenType.KEYWORD)
-            hub.add(c.ENDFUNCTION(), TokenType.KEYWORD)
+            if (ctx is FunctionContext) {
+                hub.add(ctx.FUNCTION(), TokenType.KEYWORD)
+                hub.add(ctx.ENDFUNCTION(), TokenType.KEYWORD)
 
-            val tk = c.takes()
-            hub.add(tk.TAKES(), TokenType.KEYWORD)
-            hub.add(tk.NOTHING(), TokenType.TYPE)
+                val tk = ctx.takes()
+                hub.add(tk.TAKES(), TokenType.KEYWORD)
+                hub.add(tk.NOTHING(), TokenType.TYPE)
 
-            val rt = c.returnsRule()
-            hub.add(rt.RETURNS(), TokenType.KEYWORD)
-            hub.add(rt.NOTHING(), TokenType.TYPE)
-            hub.add(rt.ID(), TokenType.TYPE)
+                val rt = ctx.returnsRule()
+                hub.add(rt.RETURNS(), TokenType.KEYWORD)
+                hub.add(rt.NOTHING(), TokenType.TYPE)
+                hub.add(rt.ID(), TokenType.TYPE)
 
-            hub.add(c.ID(), TokenType.FUNCTION, TokenModifier.DECLARATION)
+                hub.add(ctx.ID(), TokenType.FUNCTION, TokenModifier.DECLARATION)
+            }
 
             for (p in f.param) {
                 val c = p.ctx
@@ -133,6 +222,25 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
 
     override fun resolveCompletionItem(unresolved: CompletionItem?): CompletableFuture<CompletionItem?>? {
         return CompletableFuture.completedFuture(unresolved)
+    }
+
+    override fun diagnostic(params: DocumentDiagnosticParams?): CompletableFuture<DocumentDiagnosticReport?> {
+        val uri = params?.textDocument?.uri ?: return CompletableFuture.completedFuture(
+            DocumentDiagnosticReport(RelatedUnchangedDocumentDiagnosticReport())
+        )
+        val diagnostics = listOf<Diagnostic>(
+            /*
+            Diagnostic(
+                Range(Position(0, 0), Position(0, 8)),
+                "Error: Testing diagnostic",
+                DiagnosticSeverity.Error,
+                "JASS"
+            )
+             */
+        )
+
+        val report = RelatedFullDocumentDiagnosticReport(diagnostics)
+        return CompletableFuture.completedFuture(DocumentDiagnosticReport(report))
     }
 }
 

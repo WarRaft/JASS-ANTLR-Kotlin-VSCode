@@ -43,6 +43,10 @@ class JassLanguageServer : LanguageServer, LanguageClientAware {
             }
 
             documentHighlightProvider = Either.forLeft(true)
+
+            diagnosticProvider = DiagnosticRegistrationOptions().apply {
+
+            }
         }
         return CompletableFuture.completedFuture(InitializeResult(capabilities))
     }

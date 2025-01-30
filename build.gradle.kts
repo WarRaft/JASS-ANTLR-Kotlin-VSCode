@@ -10,9 +10,9 @@ repositories {
 }
 
 dependencies {
-    //implementation("io.github.warraft:jass-antlr:0.0.20")
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.23.1")
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.23.1")
+    //implementation("io.github.warraft:jass-antlr:0.0.20")
     implementation(files("/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin/build/libs/jass-antlr.jar"))
     implementation(kotlin("test"))
 

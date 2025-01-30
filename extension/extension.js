@@ -5,6 +5,8 @@ const {workspace} = require("vscode");
 
 let client;
 
+// https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+
 // noinspection JSUnusedGlobalSymbols
 module.exports = {
     activate(context) {
