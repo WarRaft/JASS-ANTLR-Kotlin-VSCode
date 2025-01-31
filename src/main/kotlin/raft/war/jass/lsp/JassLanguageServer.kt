@@ -3,6 +3,8 @@ package raft.war.jass.lsp
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.*
+import raft.war.jass.lsp.service.document.JassTextDocumentService
+import raft.war.jass.lsp.service.JassWorkspaceService
 import raft.war.jass.lsp.token.TokenModifier
 import raft.war.jass.lsp.token.TokenType
 import java.util.concurrent.CompletableFuture
@@ -43,6 +45,8 @@ class JassLanguageServer(val args: Array<String>) : LanguageServer, LanguageClie
             }
 
             documentHighlightProvider = Either.forLeft(true)
+
+            foldingRangeProvider = Either.forLeft(true)
 
             diagnosticProvider = DiagnosticRegistrationOptions().apply {
 
