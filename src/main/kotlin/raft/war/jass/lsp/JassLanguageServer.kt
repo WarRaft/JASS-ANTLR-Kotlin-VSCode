@@ -19,7 +19,6 @@ class JassLanguageServer(val args: Array<String>) : LanguageServer, LanguageClie
         this.client = client
     }
 
-    @Suppress("unused")
     fun log(message: String) = client?.logMessage(MessageParams(MessageType.Log, message))
 
     override fun initialize(params: InitializeParams?): CompletableFuture<InitializeResult?> {

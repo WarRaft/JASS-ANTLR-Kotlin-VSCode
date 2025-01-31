@@ -22,7 +22,7 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
     val semanticTokensFullProvider = JassSemanticTokensFullProvider()
     override fun semanticTokensFull(params: SemanticTokensParams?): CompletableFuture<SemanticTokens> =
         CompletableFuture.completedFuture(semanticTokensFullProvider.tokens(getState(params?.textDocument?.uri)))
-    
+
     val foldingRangeProvider = JassFoldingRangeProvider()
     override fun foldingRange(params: FoldingRangeRequestParams?): CompletableFuture<List<FoldingRange>> =
         CompletableFuture.completedFuture(foldingRangeProvider.ranges(getState(params?.textDocument?.uri)))
@@ -80,7 +80,11 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
     ): JassState {
         val s = states.getOrPut(path) { JassState() }
         if (noparse && s.nodeMap.isNotEmpty()) return s
-        s.parse(stream, list)
+        try {
+            s.parse(stream, list)
+        } catch (e: Exception) {
+            server.log("Error! ${e.message}")
+        }
         return s
     }
 
@@ -126,20 +130,26 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
     }
 
     override fun diagnostic(params: DocumentDiagnosticParams?): CompletableFuture<DocumentDiagnosticReport?> {
-        val uri = params?.textDocument?.uri ?: return CompletableFuture.completedFuture(
-            DocumentDiagnosticReport(RelatedUnchangedDocumentDiagnosticReport())
-        )
-        val diagnostics = listOf<Diagnostic>(
-            /*
-            Diagnostic(
-                Range(Position(0, 0), Position(0, 8)),
-                "Error: Testing diagnostic",
-                DiagnosticSeverity.Error,
-                "JASS"
-            )
-             */
-        )
+        val diagnostics = mutableListOf<Diagnostic>()
 
+        val state = getState(params?.textDocument?.uri)
+        if (state == null) {
+            val report = RelatedFullDocumentDiagnosticReport(diagnostics)
+            return CompletableFuture.completedFuture(DocumentDiagnosticReport(report))
+        }
+
+        for (e in state.errors) {
+            val t = e.token
+            if (t == null) continue
+            diagnostics.add(
+                Diagnostic(
+                    Range(Position(t.line - 1, t.pos), Position(t.line - 1, t.pos + t.len)),
+                    e.message,
+                    DiagnosticSeverity.Error,
+                    "${e.id}"
+                )
+            )
+        }
         val report = RelatedFullDocumentDiagnosticReport(diagnostics)
         return CompletableFuture.completedFuture(DocumentDiagnosticReport(report))
     }

@@ -1,6 +1,5 @@
 const path = require('path');
 const {LanguageClient} = require('vscode-languageclient');
-const {TransportKind} = require("vscode-languageclient/node");
 // noinspection NpmUsedModulesInstalled
 const {workspace, Uri} = require("vscode");
 

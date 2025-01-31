@@ -1,6 +1,5 @@
 package raft.war.jass.lsp.service.document.provider
 
-import io.github.warraft.jass.antlr.JassParser.FunctionContext
 import io.github.warraft.jass.antlr.JassState
 import org.eclipse.lsp4j.FoldingRange
 import org.eclipse.lsp4j.FoldingRangeKind
@@ -11,18 +10,16 @@ class JassFoldingRangeProvider {
         if (state == null) return ranges
 
         for (f in state.functions) {
-            val ctx = f.ctx
+            if (f.tkeywords.isEmpty()) continue
+            ranges.add(
+                FoldingRange(
+                    f.tkeywords.first().line - 1,
+                    f.tkeywords.last().line - 1,
+                ).apply {
+                    kind = FoldingRangeKind.Region
+                }
+            )
 
-            if (ctx is FunctionContext) {
-                ranges.add(
-                    FoldingRange(
-                        ctx.FUNCTION().symbol.line - 1,
-                        ctx.ENDFUNCTION().symbol.line - 1,
-                    ).apply {
-                        kind = FoldingRangeKind.Region
-                    }
-                )
-            }
         }
 
         return ranges

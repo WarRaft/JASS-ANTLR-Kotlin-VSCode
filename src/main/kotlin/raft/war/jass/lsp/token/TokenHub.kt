@@ -1,5 +1,6 @@
 package raft.war.jass.lsp.token
 
+import io.github.warraft.jass.antlr.token.JassToken
 import org.antlr.v4.runtime.CommonToken
 import org.antlr.v4.runtime.tree.TerminalNode
 
@@ -23,7 +24,19 @@ class TokenHub {
         lines.getOrPut(t.line) { TokenLine(index = t.line) }.add(t)
     }
 
-    fun add(token: CommonToken, type: TokenType, modifier: TokenModifier? = null) {
+    fun add(token: JassToken?, type: TokenType, modifier: TokenModifier? = null) {
+        if (token == null) return
+        add(
+            line = token.line - 1,
+            pos = token.pos,
+            len = token.len,
+            type = type,
+            modifier = modifier
+        )
+    }
+
+    fun add(token: CommonToken?, type: TokenType, modifier: TokenModifier? = null) {
+        if (token == null) return
         add(
             line = token.line - 1,
             pos = token.charPositionInLine,

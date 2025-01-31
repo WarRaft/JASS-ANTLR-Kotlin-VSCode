@@ -1,8 +1,6 @@
 package raft.war.jass.lsp.service.document.provider
 
 import io.github.warraft.jass.antlr.JassParser
-import io.github.warraft.jass.antlr.JassParser.FunctionContext
-import io.github.warraft.jass.antlr.JassParser.NativeRuleContext
 import io.github.warraft.jass.antlr.JassState
 import io.github.warraft.jass.antlr.psi.IJassNode
 import io.github.warraft.jass.antlr.psi.JassExitWhen
@@ -11,7 +9,6 @@ import io.github.warraft.jass.antlr.psi.JassIf
 import io.github.warraft.jass.antlr.psi.JassLoop
 import io.github.warraft.jass.antlr.psi.JassReturn
 import io.github.warraft.jass.antlr.psi.JassVar
-import org.antlr.v4.runtime.tree.TerminalNode
 import org.eclipse.lsp4j.SemanticTokens
 import raft.war.jass.lsp.token.TokenHub
 import raft.war.jass.lsp.token.TokenModifier
@@ -56,11 +53,11 @@ class JassSemanticTokensFullProvider {
         }
 
         for (f in state.natives) {
-            func(f, hub)
+            function(f, hub)
         }
 
         for (f in state.functions) {
-            func(f, hub)
+            function(f, hub)
         }
 
 
@@ -86,34 +83,15 @@ class JassSemanticTokensFullProvider {
         }
     }
 
-    fun func(f: JassFun, hub: TokenHub) {
-        val ctx = f.ctx
-
-        fun head(id: TerminalNode, tk: JassParser.TakesContext, rt: JassParser.ReturnsRuleContext) {
-            hub.add(tk.TAKES(), TokenType.KEYWORD)
-            hub.add(tk.NOTHING(), TokenType.TYPE)
-
-            hub.add(rt.RETURNS(), TokenType.KEYWORD)
-            hub.add(rt.NOTHING(), TokenType.TYPE)
-            hub.add(rt.ID(), TokenType.TYPE)
-
-            hub.add(id, TokenType.FUNCTION, TokenModifier.DECLARATION)
+    fun function(f: JassFun, hub: TokenHub) {
+        for (k in f.tkeywords) {
+            hub.add(k, TokenType.KEYWORD)
         }
 
-        if (ctx is NativeRuleContext) {
-            hub.add(ctx.CONSTANT(), TokenType.KEYWORD)
-            hub.add(ctx.NATIVE(), TokenType.KEYWORD)
-            head(ctx.ID(), ctx.takes(), ctx.returnsRule())
-        }
-
-        if (ctx is FunctionContext) {
-            hub.add(ctx.FUNCTION(), TokenType.KEYWORD)
-            hub.add(ctx.ENDFUNCTION(), TokenType.KEYWORD)
-            head(ctx.ID(), ctx.takes(), ctx.returnsRule())
-        }
+        hub.add(f.tname, TokenType.FUNCTION, TokenModifier.DECLARATION)
+        hub.add(f.ttype, TokenType.TYPE)
 
         param(f.param, hub)
-
         stmt(f.stmt, hub)
     }
 
@@ -129,12 +107,15 @@ class JassSemanticTokensFullProvider {
                 }
 
                 is JassFun -> {
+                    /*
                     val ctx = node.ctx
                     if (ctx is JassParser.CallContext) {
                         hub.add(ctx.CALL(), TokenType.KEYWORD)
                         hub.add(ctx.DEBUG(), TokenType.KEYWORD)
                         hub.add(ctx.ID(), TokenType.FUNCTION)
                     }
+
+                     */
                 }
 
                 is JassIf -> {
