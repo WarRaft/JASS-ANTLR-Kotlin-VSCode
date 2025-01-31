@@ -14,13 +14,17 @@ const {workspace, Uri} = require("vscode");
 module.exports = {
     /** @param {ExtensionContext} context */
     activate(context) {
+        const sdk = path.join(context.extensionPath, 'sdk')
+
         const executable = {
             command: 'java',
-            args: ['-jar', path.join(__dirname, '..', 'build', 'libs', 'jass-antlr-lsp.jar')],
+            args: [
+                '-jar', path.join(__dirname, '..', 'build', 'libs', 'jass-antlr-lsp.jar'),
+                '-sdk', sdk
+            ],
             options: {
                 env: process.env,
-            },
-            transport: TransportKind.stdio,
+            }
         }
 
         const serverOptions = {
@@ -55,7 +59,7 @@ module.exports = {
             workspace.workspaceFolders?.length ?? 0,
             null,
             {
-                uri: Uri.file(path.join(context.extensionPath, 'sdk')),
+                uri: Uri.file(sdk),
                 name: "JASS"
             }
         );

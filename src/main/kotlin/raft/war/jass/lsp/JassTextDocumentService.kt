@@ -9,6 +9,7 @@ import io.github.warraft.jass.antlr.psi.JassIf
 import io.github.warraft.jass.antlr.psi.JassLoop
 import io.github.warraft.jass.antlr.psi.JassReturn
 import io.github.warraft.jass.antlr.psi.JassVar
+import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.eclipse.lsp4j.*
@@ -17,10 +18,15 @@ import org.eclipse.lsp4j.services.TextDocumentService
 import raft.war.jass.lsp.token.TokenHub
 import raft.war.jass.lsp.token.TokenModifier
 import raft.war.jass.lsp.token.TokenType
+import java.net.URI
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
+import kotlin.io.path.isReadable
+import kotlin.io.path.toPath
 
 class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentService {
-    private val states = mutableMapOf<String, JassState>()
+    private val states = mutableMapOf<Path, JassState>()
 
     override fun documentHighlight(params: DocumentHighlightParams?): CompletableFuture<List<DocumentHighlight>> {
         val highlights = mutableListOf<DocumentHighlight>()
@@ -171,7 +177,10 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
     }
 
     override fun semanticTokensFull(params: SemanticTokensParams?): CompletableFuture<SemanticTokens> {
-        val state = states[params?.textDocument?.uri]
+        val uri = params?.textDocument?.uri
+        if (uri == null) return CompletableFuture.completedFuture(SemanticTokens())
+
+        val state = states[URI(uri).toPath()]
         if (state == null) return CompletableFuture.completedFuture(SemanticTokens())
 
         val hub = TokenHub()
@@ -232,9 +241,31 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
         return CompletableFuture.completedFuture(hover)
     }
 
+    private fun state(path: Path, stream: CharStream, list: List<JassState> = listOf(), noparse: Boolean): JassState {
+        val s = states.getOrPut(path) { JassState() }
+        if (noparse && s.nodeMap.isNotEmpty()) return s
+        s.parse(stream, list)
+        return s
+    }
+
     private fun stateUpdate(uri: String, text: String) {
-        server.log(uri)
-        states.getOrPut(uri) { JassState() }.parse(CharStreams.fromString(text))
+        val path = URI(uri).toPath()
+        val list = mutableListOf<JassState>()
+
+        val folder = server.args.getOrNull(1)
+        if (folder != null) {
+            for (f in listOf("common.j", "blizzard.j")) {
+                val p = Paths.get(folder, f)
+                if (p == path) {
+                    state(path, CharStreams.fromString(text), list, false)
+                    return
+                }
+                if (!p.isReadable()) continue
+                list.add(state(p, CharStreams.fromPath(p), list, true))
+            }
+        }
+
+        state(path, CharStreams.fromString(text), list, false)
     }
 
     override fun didOpen(params: DidOpenTextDocumentParams) {

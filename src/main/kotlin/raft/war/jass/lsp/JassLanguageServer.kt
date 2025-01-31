@@ -7,7 +7,7 @@ import raft.war.jass.lsp.token.TokenModifier
 import raft.war.jass.lsp.token.TokenType
 import java.util.concurrent.CompletableFuture
 
-class JassLanguageServer : LanguageServer, LanguageClientAware {
+class JassLanguageServer(val args: Array<String>) : LanguageServer, LanguageClientAware {
     private val workspaceService = JassWorkspaceService()
     private val textDocumentService = JassTextDocumentService(this)
 
