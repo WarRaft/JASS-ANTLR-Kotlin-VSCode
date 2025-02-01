@@ -50,14 +50,16 @@ module.exports = {
 
         client.start()
 
-        workspace.updateWorkspaceFolders(
-            workspace.workspaceFolders?.length ?? 0,
-            null,
-            {
-                uri: Uri.file(sdk),
-                name: "JASS"
-            }
-        );
+        if (!workspace.workspaceFolders?.some(folder => folder.uri.fsPath === sdk)) {
+            workspace.updateWorkspaceFolders(
+                workspace.workspaceFolders?.length ?? 0,
+                null,
+                {
+                    uri: Uri.file(sdk),
+                    name: "JASS"
+                }
+            );
+        }
     },
 
     deactivate() {

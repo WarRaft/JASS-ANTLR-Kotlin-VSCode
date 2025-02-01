@@ -19,7 +19,7 @@ import kotlin.io.path.toPath
 class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentService {
     private val states = mutableMapOf<Path, JassState>()
 
-    val semanticTokensFullProvider = JassSemanticTokensFullProvider()
+    val semanticTokensFullProvider = JassSemanticTokensFullProvider(server)
     override fun semanticTokensFull(params: SemanticTokensParams?): CompletableFuture<SemanticTokens> =
         CompletableFuture.completedFuture(semanticTokensFullProvider.tokens(getState(params?.textDocument?.uri)))
 
@@ -61,7 +61,6 @@ class JassTextDocumentService(val server: JassLanguageServer) : TextDocumentServ
             CompletionItem("Anal5"),
             CompletionItem("Cunt4")
         )
-        server.log("completion")
         return CompletableFuture.completedFuture(Either.forLeft(completionItems))
     }
 

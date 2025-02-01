@@ -3,18 +3,26 @@ package raft.war.jass.lsp.service.document.provider
 import io.github.warraft.jass.antlr.JassParser
 import io.github.warraft.jass.antlr.JassState
 import io.github.warraft.jass.antlr.psi.IJassNode
+import io.github.warraft.jass.antlr.psi.JassBool
 import io.github.warraft.jass.antlr.psi.JassExitWhen
+import io.github.warraft.jass.antlr.psi.JassExpr
+import io.github.warraft.jass.antlr.psi.JassExprOp
 import io.github.warraft.jass.antlr.psi.JassFun
 import io.github.warraft.jass.antlr.psi.JassIf
+import io.github.warraft.jass.antlr.psi.JassInt
 import io.github.warraft.jass.antlr.psi.JassLoop
+import io.github.warraft.jass.antlr.psi.JassNull
+import io.github.warraft.jass.antlr.psi.JassReal
 import io.github.warraft.jass.antlr.psi.JassReturn
+import io.github.warraft.jass.antlr.psi.JassStr
 import io.github.warraft.jass.antlr.psi.JassVar
 import org.eclipse.lsp4j.SemanticTokens
+import raft.war.jass.lsp.JassLanguageServer
 import raft.war.jass.lsp.token.TokenHub
 import raft.war.jass.lsp.token.TokenModifier
 import raft.war.jass.lsp.token.TokenType
 
-class JassSemanticTokensFullProvider {
+class JassSemanticTokensFullProvider(val server: JassLanguageServer) {
 
     fun tokens(state: JassState?): SemanticTokens {
         if (state == null) return SemanticTokens()
@@ -84,12 +92,11 @@ class JassSemanticTokensFullProvider {
     }
 
     fun function(f: JassFun, hub: TokenHub) {
-        for (k in f.tkeywords) {
-            hub.add(k, TokenType.KEYWORD)
-        }
+        f.token.keywords.forEach { hub.add(it, TokenType.KEYWORD) }
 
-        hub.add(f.tname, TokenType.FUNCTION, TokenModifier.DECLARATION)
-        hub.add(f.ttype, TokenType.TYPE)
+
+        hub.add(f.token.name, TokenType.FUNCTION, TokenModifier.DECLARATION)
+        hub.add(f.token.type, TokenType.TYPE)
 
         param(f.param, hub)
         stmt(f.stmt, hub)
@@ -107,15 +114,13 @@ class JassSemanticTokensFullProvider {
                 }
 
                 is JassFun -> {
-                    /*
-                    val ctx = node.ctx
-                    if (ctx is JassParser.CallContext) {
-                        hub.add(ctx.CALL(), TokenType.KEYWORD)
-                        hub.add(ctx.DEBUG(), TokenType.KEYWORD)
-                        hub.add(ctx.ID(), TokenType.FUNCTION)
-                    }
+                    hub.add(node.token.name, TokenType.FUNCTION)
+                    node.token.keywords.forEach { hub.add(it, TokenType.KEYWORD) }
 
-                     */
+
+                    for (a in node.arg) {
+                        expr(a, hub)
+                    }
                 }
 
                 is JassIf -> {
@@ -166,6 +171,75 @@ class JassSemanticTokensFullProvider {
                         hub.add(ctx.RETURN(), TokenType.KEYWORD)
                     }
                 }
+            }
+        }
+    }
+
+
+    fun expr(e: IJassNode?, hub: TokenHub) {
+        if (e == null) return
+        val builder = StringBuilder()
+
+        when (e) {
+            is JassNull -> builder.append("null")
+            is JassBool -> builder.append(e.raw)
+            is JassInt -> builder.append(e.raw)
+            is JassReal -> builder.append(e.raw)
+            is JassStr -> builder.append(e.raw)
+            is JassVar -> {
+                if (e.index != null) {
+                    builder.append("[")
+                    expr(e.index, hub)
+                    builder.append("]")
+                }
+            }
+
+            is JassExpr -> when (e.op) {
+                JassExprOp.Get -> expr(e.a, hub)
+                JassExprOp.Set -> {
+                    println("⚠️JassExprOp.Set")
+                }
+
+                JassExprOp.Add, JassExprOp.Sub,
+                JassExprOp.Mul, JassExprOp.Div,
+                JassExprOp.Lt, JassExprOp.LtEq, JassExprOp.Gt, JassExprOp.GtEq,
+                JassExprOp.Eq, JassExprOp.Neq,
+                JassExprOp.And, JassExprOp.Or,
+                    -> if (e.a != null && e.b != null) {
+                    expr(e.a, hub)
+                    expr(e.b, hub)
+                }
+
+                JassExprOp.Paren -> {
+                    builder.append("(")
+                    expr(e.a, hub)
+                    builder.append(")")
+                }
+
+                JassExprOp.UnSub -> {
+                    builder.append("-")
+                    expr(e.a, hub)
+                }
+
+                JassExprOp.UnNot -> {
+                    builder.append("not ")
+                    expr(e.a, hub)
+                }
+            }
+
+            is JassFun -> {
+                hub.add(e.token.name, TokenType.FUNCTION)
+                e.token.keywords.forEach { hub.add(it, TokenType.KEYWORD) }
+
+                for (a in e.arg) {
+                    expr(a, hub)
+                }
+            }
+
+            else -> {
+                server.log("${e.javaClass}")
+
+                null
             }
         }
     }

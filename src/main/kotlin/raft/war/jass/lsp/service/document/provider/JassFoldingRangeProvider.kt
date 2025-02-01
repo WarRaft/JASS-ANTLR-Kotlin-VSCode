@@ -10,11 +10,11 @@ class JassFoldingRangeProvider {
         if (state == null) return ranges
 
         for (f in state.functions) {
-            if (f.tkeywords.isEmpty()) continue
+            if (f.token.keywords.isEmpty()) continue
             ranges.add(
                 FoldingRange(
-                    f.tkeywords.first().line - 1,
-                    f.tkeywords.last().line - 1,
+                    f.token.keywords.first().line - 1,
+                    f.token.keywords.last().line - 1,
                 ).apply {
                     kind = FoldingRangeKind.Region
                 }
