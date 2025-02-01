@@ -26,26 +26,22 @@ module.exports = {
             }
         }
 
-        const serverOptions = {
-            run: executable,
-            debug: executable,
-        }
-
-        const clientOptions = {
-            documentSelector: [{
-                scheme: 'file',
-                language: 'jass',
-            }],
-            synchronize: {
-                fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
-            }
-        }
-
         client = new LanguageClient(
             'JassAntlrLsp',
             'JassAntlrLspClient',
-            serverOptions,
-            clientOptions
+            {
+                run: executable,
+                debug: executable,
+            },
+            {
+                documentSelector: [{
+                    scheme: 'file',
+                    language: 'jass',
+                }],
+                synchronize: {
+                    fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
+                }
+            }
         )
 
         client.onNotification('window/logMessage', params => {
@@ -62,7 +58,6 @@ module.exports = {
                 name: "JASS"
             }
         );
-        // const ext = extensions.getExtension('WarRaft.jass-antlr-kotlin')
     },
 
     deactivate() {
