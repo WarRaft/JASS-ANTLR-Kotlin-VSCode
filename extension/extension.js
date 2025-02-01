@@ -18,8 +18,8 @@ module.exports = {
         const executable = {
             command: 'java',
             args: [
-                '-jar', path.join(__dirname, '..', 'build', 'libs', 'jass-antlr-lsp.jar'),
-                '-sdk', sdk
+                '-jar', path.join(__dirname, 'jass-antlr-lsp.jar'),
+                '-lsp4j', sdk
             ],
             options: {
                 env: process.env,
