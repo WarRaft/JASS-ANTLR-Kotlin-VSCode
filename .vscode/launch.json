@@ -1,7 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-
     {
       "name": "Launch Client",
       "type": "extensionHost",
@@ -13,8 +12,7 @@
       "outFiles": [
         "${workspaceRoot}/extension/**/*.js"
       ],
-      "autoAttachChildProcesses": true,
-      
+      "autoAttachChildProcesses": true
     }
   ]
 }
