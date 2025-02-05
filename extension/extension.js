@@ -50,7 +50,7 @@ module.exports = {
 
         client.start()
 
-        if (!workspace.workspaceFolders?.some(folder => folder.uri.fsPath === sdk)) {
+        if (!(workspace.workspaceFolders?.some(folder => folder.uri.fsPath === sdk) ?? true)) {
             workspace.updateWorkspaceFolders(
                 workspace.workspaceFolders?.length ?? 0,
                 null,
