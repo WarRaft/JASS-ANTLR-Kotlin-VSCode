@@ -58,7 +58,7 @@
           "jass"
         ],
         "extensions": [
-          "j"
+          ".j"
         ],
         "icon": {
           "light": "./icons/jass.svg",
