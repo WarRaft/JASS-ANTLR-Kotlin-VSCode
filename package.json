@@ -64,7 +64,22 @@
           "light": "./icons/jass.svg",
           "dark": "./icons/jass.svg"
         },
-        "configuration": "./src/jass/syntaxes/language-configuration.json"
+        "configuration": "./syntaxes/jass.language-configuration.json"
+      },
+      {
+        "id": "vjass",
+        "aliases": [
+          "VJASS",
+          "vjass"
+        ],
+        "extensions": [
+          ".vj"
+        ],
+        "icon": {
+          "light": "./icons/vjass.svg",
+          "dark": "./icons/vjass.svg"
+        },
+        "configuration": "./syntaxes/vjass.language-configuration.json"
       }
     ]
   }

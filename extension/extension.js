@@ -1,7 +1,7 @@
 const path = require('path');
-const {LanguageClient} = require('vscode-languageclient');
+const { LanguageClient } = require('vscode-languageclient');
 // noinspection NpmUsedModulesInstalled
-const {workspace, Uri} = require("vscode");
+const { workspace, Uri } = require("vscode");
 
 /** @type {LanguageClient} */ let client;
 
@@ -34,10 +34,16 @@ module.exports = {
                 debug: executable,
             },
             {
-                documentSelector: [{
-                    scheme: 'file',
-                    language: 'jass',
-                }],
+                documentSelector: [
+                    {
+                        scheme: 'file',
+                        language: 'jass',
+                    },
+                    {
+                        scheme: 'file',
+                        language: 'vjass',
+                    }
+                ],
                 synchronize: {
                     fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
                 }
