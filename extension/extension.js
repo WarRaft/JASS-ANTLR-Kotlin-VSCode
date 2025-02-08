@@ -42,6 +42,10 @@ module.exports = {
                     {
                         scheme: 'file',
                         language: 'vjass',
+                    },
+                    {
+                        scheme: 'file',
+                        language: 'zinc',
                     }
                 ],
                 synchronize: {

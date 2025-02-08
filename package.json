@@ -41,11 +41,17 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@types/vscode": "^1.96.0",
+    "@types/vscode": "^1.97.0",
     "@vscode/vsce": "^3.2.2"
   },
   "configurationDefaults": {
     "jass": {
+      "editor.semanticHighlighting.enabled": true
+    },
+    "vjass": {
+      "editor.semanticHighlighting.enabled": true
+    },
+    "zinc": {
       "editor.semanticHighlighting.enabled": true
     }
   },
@@ -80,6 +86,21 @@
           "dark": "./icons/vjass.svg"
         },
         "configuration": "./syntaxes/vjass.language-configuration.json"
+      },
+      {
+        "id": "zinc",
+        "aliases": [
+          "ZINC",
+          "zinc"
+        ],
+        "extensions": [
+          ".zn"
+        ],
+        "icon": {
+          "light": "./icons/zinc.svg",
+          "dark": "./icons/zinc.svg"
+        },
+        "configuration": "./syntaxes/zinc.language-configuration.json"
       }
     ]
   }
