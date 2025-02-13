@@ -26,7 +26,9 @@ const download = (url, dest) => {
 }
 
 // https://github.com/UnryzeC/UjAPI/tree/main/uJAPIFiles
-download('https://raw.githubusercontent.com/UnryzeC/UjAPI/main/uJAPIFiles/common.j', path.join('..', 'sdk', 'common.j'), true)
+
+download('https://raw.githubusercontent.com/UnryzeC/UjAPI/main/uJAPIFiles/common.j', path.join('..', 'sdk', 'common.ujapi.j'), true)
+download('https://raw.githubusercontent.com/WarRaft/war3mpq/refs/heads/main/extract/Scripts/common.j', path.join('..', 'sdk', 'common.j'), true)
 download('https://raw.githubusercontent.com/WarRaft/war3mpq/refs/heads/main/extract/Scripts/Blizzard.j', path.join('..', 'sdk', 'blizzard.j'), true)
 
 

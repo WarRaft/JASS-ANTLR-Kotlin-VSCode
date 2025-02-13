@@ -55,7 +55,37 @@
       "editor.semanticHighlighting.enabled": true
     }
   },
+  "activationEvents": [
+    "onDidChangeConfiguration"
+  ],
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "WarCraft",
+          "name": "WarCraft"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "array",
+      "title": "Warcraft",
+      "properties": {
+        "Warcraft.scripts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "default": [
+            "{extension} common.ujapi.j",
+            "{extension} blizzard.j"
+          ],
+          "editPresentation": "multilineText",
+          "markdownDescription": "Path to the game's built-in scripts. Exte  \n - `common.j`  \n - `blizzard.j`"
+        }
+      }
+    },
     "languages": [
       {
         "id": "jass",
