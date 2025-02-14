@@ -2,7 +2,7 @@
 
 const {LanguageClient} = require('vscode-languageclient')
 // noinspection NpmUsedModulesInstalled
-const {workspace, window, Uri, TreeItemCollapsibleState, EventEmitter, commands} = require('vscode')
+const {workspace, window, Uri, EventEmitter, commands} = require('vscode')
 
 /**
  * @typedef {import('vscode').Uri} Uri
@@ -22,7 +22,7 @@ class FileNode {
         this.name = name
         this.uri = uri
         this.label = name
-        this.collapsibleState = TreeItemCollapsibleState.None
+        this.collapsibleState = 0 // TreeItemCollapsibleState.None
     }
 }
 
@@ -43,17 +43,70 @@ class FileExplorerProvider {
                 new FileNode('file2.log', '/другой/путь/file2.log')
             ]
         }
-        return [] // Здесь можно добавлять вложенные элементы, если нужно
+        return []
     }
 
     refresh() {
-        this._onDidChangeTreeData.fire()
+        this._onDidChangeTreeData.fire('')
     }
 }
+
+/**
+ * @param {ExtensionContext} context
+ * @return {Promise<Uri[]>}
+ */
+const scriptList = async context => {
+    /** @type {Uri[]} */ const uris = []
+
+    /** @type {string[]} */  const scripts = workspace.getConfiguration(W3).scripts
+    scripts.push('/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin-VSCode/sdk/common.j')
+
+    for (let script of scripts) {
+        script = script.trimStart()
+
+        let uri = context.extensionUri
+        if (script.startsWith('{extension}')) {
+            script = script.replace('{extension}', '').trim()
+            uri = Uri.joinPath(uri, 'sdk', script)
+        } else {
+            uri = Uri.parse(script)
+        }
+
+        /** @type {FileStat} */ let stat
+        try {
+            stat = await workspace.fs.stat(uri)
+        } catch (e) {
+            window.showErrorMessage(`No such file or directory: ${uri.fsPath}`)
+            continue
+        }
+
+        switch (stat.type) {
+            case 0:
+                window.showErrorMessage(`Unknown file type: ${uri.fsPath}`)
+                continue
+            case 1:
+                uris.push(uri)
+                break
+            case 2:
+                window.showErrorMessage(`Directory not supported: ${uri.fsPath}`)
+                continue
+            case 64:
+                window.showErrorMessage(`SymbolicLink not supported: ${uri.fsPath}`)
+        }
+    }
+
+    scripts.length = 0
+    for (const uri of uris) scripts.push(uri.fsPath)
+
+    return uris
+}
+
 
 module.exports = {
     /** @param {ExtensionContext} context */
     async activate(context) {
+        const scripts = await scriptList(context)
+
         client = new LanguageClient(
             'JassAntlrLsp',
             'JassAntlrLspClient',
@@ -64,7 +117,11 @@ module.exports = {
             {
                 progressOnInitialization: true,
                 initializationOptions: {
-                    //extensionPath: context.extensionUri.fsPath,
+                    settings: {
+                        [W3]: {
+                            scripts: scripts.map(script => script.fsPath)
+                        },
+                    }
                 },
                 documentSelector: [
                     {
@@ -86,11 +143,9 @@ module.exports = {
                          * @param {string[]} params
                          * @param {(a:string[]) => void} next
                          */
-                        didChangeConfiguration: (params, next) => {
+                        didChangeConfiguration: async (params, next) => {
                             if (params.indexOf(W3) >= 0) {
-                                const scripts = workspace.getConfiguration(W3).scripts
-                                scripts.splice(0, scripts.length)
-                                scripts.push('Analyzer')
+                                await scriptList(context)
                             }
                             return next(params)
                         }
@@ -107,47 +162,6 @@ module.exports = {
             console.log(`${params.message}`)
         })
 
-        /** @type {Uri[]} */ const uris = []
-
-        /** @type {string[]} */  const scripts = workspace.getConfiguration(W3).scripts
-        scripts.push('/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin-VSCode/sdk/common.j')
-        scripts.push('')
-        scripts.push('anal')
-
-        for (let script of scripts) {
-            script = script.trimStart()
-
-            let uri = context.extensionUri
-            if (script.startsWith('{extension}')) {
-                script = script.replace('{extension}', '').trim()
-                uri = Uri.joinPath(uri, 'sdk', script)
-            } else {
-                uri = Uri.parse(script)
-            }
-
-            /** @type {FileStat} */ let stat
-            try {
-                stat = await workspace.fs.stat(uri)
-            } catch (e) {
-                window.showErrorMessage(`No such file or directory: ${uri.fsPath}`)
-                continue
-            }
-
-            switch (stat.type) {
-                case 0:
-                    window.showErrorMessage(`Unknown file type: ${uri.fsPath}`)
-                    continue
-                case 1:
-                    uris.push(uri)
-                    break
-                case 2:
-                    window.showErrorMessage(`Directory not supported: ${uri.fsPath}`)
-                    continue
-                case 64:
-                    window.showErrorMessage(`SymbolicLink not supported: ${uri.fsPath}`)
-            }
-        }
-
         await client.start()
 
         const fileExplorerProvider = new FileExplorerProvider()
@@ -163,10 +177,6 @@ module.exports = {
         commands.registerCommand('WarCraft.refresh', () => {
             fileExplorerProvider.refresh()
         })
-
-        if (uris.length > 0) {
-            console.log(uris)
-        }
 
         await window.withProgress({
             location: 10, //location: vscode.ProgressLocation.Window,
