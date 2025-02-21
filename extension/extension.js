@@ -2,7 +2,9 @@
 
 const {LanguageClient} = require('vscode-languageclient')
 // noinspection NpmUsedModulesInstalled
-const {workspace, window, Uri, EventEmitter, commands} = require('vscode')
+const {workspace, window, Uri, TreeItem, EventEmitter} = require('vscode')
+const {settingsScriptList} = require('./js/settingsScriptList')
+const {W3} = require('./js/variables')
 
 /**
  * @typedef {import('vscode').Uri} Uri
@@ -15,97 +17,34 @@ const {workspace, window, Uri, EventEmitter, commands} = require('vscode')
 
 // https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
 
-const W3 = 'Warcraft'
-
-class FileNode {
-    constructor(name, uri) {
-        this.name = name
-        this.uri = uri
-        this.label = name
-        this.collapsibleState = 0 // TreeItemCollapsibleState.None
-    }
-}
-
-class FileExplorerProvider {
-    constructor() {
-        this._onDidChangeTreeData = new EventEmitter()
-        this.onDidChangeTreeData = this._onDidChangeTreeData.event
-    }
-
-    getTreeItem(element) {
-        return element
-    }
-
-    getChildren(element) {
-        if (!element) {
-            return [
-                new FileNode('file1.txt', '/абсолютный/путь/к/file1.txt'),
-                new FileNode('file2.log', '/другой/путь/file2.log')
-            ]
-        }
-        return []
-    }
-
-    refresh() {
-        this._onDidChangeTreeData.fire('')
-    }
-}
-
-/**
- * @param {ExtensionContext} context
- * @return {Promise<Uri[]>}
- */
-const scriptList = async context => {
-    /** @type {Uri[]} */ const uris = []
-
-    /** @type {string[]} */  const scripts = workspace.getConfiguration(W3).scripts
-    scripts.push('/Users/nazarpunk/IdeaProjects/JASS-ANTLR-Kotlin-VSCode/sdk/common.j')
-
-    for (let script of scripts) {
-        script = script.trimStart()
-
-        let uri = context.extensionUri
-        if (script.startsWith('{extension}')) {
-            script = script.replace('{extension}', '').trim()
-            uri = Uri.joinPath(uri, 'sdk', script)
-        } else {
-            uri = Uri.parse(script)
-        }
-
-        /** @type {FileStat} */ let stat
-        try {
-            stat = await workspace.fs.stat(uri)
-        } catch (e) {
-            window.showErrorMessage(`No such file or directory: ${uri.fsPath}`)
-            continue
-        }
-
-        switch (stat.type) {
-            case 0:
-                window.showErrorMessage(`Unknown file type: ${uri.fsPath}`)
-                continue
-            case 1:
-                uris.push(uri)
-                break
-            case 2:
-                window.showErrorMessage(`Directory not supported: ${uri.fsPath}`)
-                continue
-            case 64:
-                window.showErrorMessage(`SymbolicLink not supported: ${uri.fsPath}`)
-        }
-    }
-
-    scripts.length = 0
-    for (const uri of uris) scripts.push(uri.fsPath)
-
-    return uris
-}
-
-
 module.exports = {
     /** @param {ExtensionContext} context */
     async activate(context) {
-        const scripts = await scriptList(context)
+        let scripts = await settingsScriptList(context)
+        const treeViewOptionsEmmiter = new EventEmitter()
+        const treeViewOptions = {
+            treeDataProvider: /** @type {TreeDataProvider} */ {
+                onDidChangeTreeData: treeViewOptionsEmmiter.event,
+                getTreeItem(element) {
+                    return element
+                },
+                getChildren(element) {
+                    const out = []
+                    if (!element) {
+                        for (const script of scripts) {
+                            const item = new TreeItem(script)
+                            item.command = {
+                                title: 'open',
+                                command: 'vscode.open',
+                                arguments: [script]
+                            }
+                            out.push(item)
+                        }
+                    }
+                    return out
+                }
+            }
+        }
 
         client = new LanguageClient(
             'JassAntlrLsp',
@@ -145,7 +84,8 @@ module.exports = {
                          */
                         didChangeConfiguration: async (params, next) => {
                             if (params.indexOf(W3) >= 0) {
-                                await scriptList(context)
+                                scripts = await settingsScriptList(context)
+                                treeViewOptionsEmmiter.fire(null)
                             }
                             return next(params)
                         }
@@ -164,20 +104,6 @@ module.exports = {
 
         await client.start()
 
-        const fileExplorerProvider = new FileExplorerProvider()
-
-        window.createTreeView('WarCraft', {
-            treeDataProvider: fileExplorerProvider
-        })
-
-        commands.registerCommand('WarCraft.openFile', uri => {
-            window.showTextDocument(Uri.file(uri))
-        })
-
-        commands.registerCommand('WarCraft.refresh', () => {
-            fileExplorerProvider.refresh()
-        })
-
         await window.withProgress({
             location: 10, //location: vscode.ProgressLocation.Window,
             title: 'Scan Files...',
@@ -195,6 +121,8 @@ module.exports = {
                 }
             }
         })
+
+        window.createTreeView(W3, treeViewOptions)
     },
 
     async deactivate() {

@@ -62,7 +62,7 @@
     "views": {
       "explorer": [
         {
-          "id": "WarCraft",
+          "id": "Warcraft",
           "name": "WarCraft"
         }
       ]
@@ -78,11 +78,11 @@
             "format": "uri"
           },
           "default": [
-            "{extension} common.ujapi.j",
-            "{extension} blizzard.j"
+            "? common.ujapi.j",
+            "? blizzard.j"
           ],
           "editPresentation": "multilineText",
-          "markdownDescription": "Path to the game's built-in scripts. Exte  \n - `common.j`  \n - `blizzard.j`"
+          "markdownDescription": "If the path starts with a `?` character, the files built into the plugin will be used. List of possible files:  \n - `common.j`  \n - `common.ujapi.j`  \n - `blizzard.j`"
         }
       }
     },
