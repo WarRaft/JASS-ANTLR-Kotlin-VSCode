@@ -5,6 +5,7 @@ const {LanguageClient} = require('vscode-languageclient')
 const {workspace, window, Uri, TreeItem, EventEmitter, ConfigurationTarget} = require('vscode')
 const {settingsScriptList} = require('./js/settingsScriptList')
 const {W3} = require('./js/variables')
+const {execFile} = require('child_process')
 
 /**
  * @typedef {import('vscode').Uri} Uri
@@ -18,9 +19,29 @@ const {W3} = require('./js/variables')
 // https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
 
 module.exports = {
-    
+
     /** @param {ExtensionContext} context */
     async activate(context) {
+        const uri = Uri.joinPath(Uri.parse(__dirname), 'jass-antlr-lsp.jar')
+
+        try {
+            await workspace.fs.stat(uri)
+        } catch (error) {
+            window.showErrorMessage(`Access denied: ${uri.fsPath}\n\n${error.message}`)
+            return
+        }
+
+        await execFile('java', ['-jar', uri.fsPath, '-ping'], (error, stdout, stderr) => {
+            if (error) {
+                window.showErrorMessage(`Run failed:\n${stderr || error.message}`)
+                return
+            }
+
+            if (stdout.trim() !== 'pong') {
+                window.showErrorMessage(`Ping failed:\n${stdout}`)
+            }
+        })
+
         for (const l of ['jass', 'vjass', 'zinc']) {
             workspace.getConfiguration('editor', {languageId: l}).update('unicodeHighlight.ambiguousCharacters', false, ConfigurationTarget.Workspace)
         }
@@ -56,7 +77,7 @@ module.exports = {
             'JassAntlrLspClient',
             {
                 command: 'java',
-                args: ['-jar', Uri.joinPath(Uri.parse(__dirname), 'jass-antlr-lsp.jar').fsPath, '-lsp4j'],
+                args: ['-jar', uri.fsPath, '-lsp4j'],
             },
             {
                 progressOnInitialization: true,
