@@ -2,7 +2,7 @@
 
 const {LanguageClient} = require('vscode-languageclient')
 // noinspection NpmUsedModulesInstalled
-const {workspace, window, Uri, TreeItem, EventEmitter} = require('vscode')
+const {workspace, window, Uri, TreeItem, EventEmitter, ConfigurationTarget} = require('vscode')
 const {settingsScriptList} = require('./js/settingsScriptList')
 const {W3} = require('./js/variables')
 
@@ -20,6 +20,10 @@ const {W3} = require('./js/variables')
 module.exports = {
     /** @param {ExtensionContext} context */
     async activate(context) {
+        for (const l of ['jass', 'vjass', 'zinc']) {
+            workspace.getConfiguration('editor', {languageId: l}).update('unicodeHighlight.ambiguousCharacters', false, ConfigurationTarget.Workspace)
+        }
+
         let scripts = await settingsScriptList(context)
         const treeViewOptionsEmmiter = new EventEmitter()
         const treeViewOptions = {

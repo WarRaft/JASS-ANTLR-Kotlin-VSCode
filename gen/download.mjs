@@ -10,13 +10,9 @@ const download = (url, dest) => {
             file.close(() => {
                 fs.readFile(dest, {encoding: 'utf8'}, (err, data) => {
                     if (err) return console.log(err)
-                    fs.writeFile(
-                        dest,
-                        data.replace(/\r\n/g, '\n')
-                            .replace(/[^\S\r\n]{2,}/g, ' ')
-                            .replace(/\n[^\S\r\n]+/g, '\n'), {encoding: 'utf8'}, err => {
-                            if (err) return console.log(err)
-                        })
+                    fs.writeFile(dest, data, {encoding: 'utf8'}, err => {
+                        if (err) return console.log(err)
+                    })
                 })
             })
         })

@@ -132,6 +132,12 @@
         },
         "configuration": "./syntaxes/zinc.language-configuration.json"
       }
+    ],
+    "formatters": [
+      {
+        "language": "jass",
+        "command": "editor.action.formatDocument"
+      }
     ]
   }
 }
