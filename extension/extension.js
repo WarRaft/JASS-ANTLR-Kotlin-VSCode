@@ -18,6 +18,7 @@ const {W3} = require('./js/variables')
 // https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
 
 module.exports = {
+    
     /** @param {ExtensionContext} context */
     async activate(context) {
         for (const l of ['jass', 'vjass', 'zinc']) {
@@ -105,6 +106,7 @@ module.exports = {
         client.onNotification('window/logMessage', params => {
             console.log(`${params.message}`)
         })
+
 
         await client.start()
 
