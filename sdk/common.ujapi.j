@@ -317,7 +317,7 @@ globals
 	constant integer PLAYER_NEUTRAL_PASSIVE = GetPlayerNeutralPassive()
 	constant integer PLAYER_NEUTRAL_AGGRESSIVE = GetPlayerNeutralAggressive()
 
-	constant playercolor PLAYER_COLOR_RED = ConvertPlayerColor(0) 
+	constant playercolor PLAYER_COLOR_RED = ConvertPlayerColor(0)
 	constant playercolor PLAYER_COLOR_BLUE = ConvertPlayerColor(1)
 	constant playercolor PLAYER_COLOR_CYAN = ConvertPlayerColor(2)
 	constant playercolor PLAYER_COLOR_PURPLE = ConvertPlayerColor(3)
