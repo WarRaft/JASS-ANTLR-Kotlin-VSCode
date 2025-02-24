@@ -6,6 +6,7 @@ const {workspace, window, Uri, TreeItem, EventEmitter, ConfigurationTarget} = re
 const {settingsScriptList} = require('./js/settingsScriptList')
 const {W3} = require('./js/variables')
 const {execFile} = require('child_process')
+const path = require('path')
 
 /**
  * @typedef {import('vscode').Uri} Uri
@@ -22,7 +23,7 @@ module.exports = {
 
     /** @param {ExtensionContext} context */
     async activate(context) {
-        const uri = Uri.joinPath(Uri.parse(__dirname), 'jass-antlr-lsp.jar')
+        const uri = Uri.file(path.join(__dirname, 'jass-antlr-lsp.jar'))
 
         try {
             await workspace.fs.stat(uri)
