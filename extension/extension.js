@@ -78,7 +78,7 @@ module.exports = {
             'JassAntlrLspClient',
             {
                 command: 'java',
-                args: ['-jar', uri.fsPath, '-lsp4j'],
+                args: ['-jar', uri.fsPath, '-lsp'],
             },
             {
                 progressOnInitialization: true,
@@ -129,8 +129,8 @@ module.exports = {
             console.log(`${params.message}`)
         })
 
-
         await client.start()
+
 
         await window.withProgress({
             location: 10, //location: vscode.ProgressLocation.Window,

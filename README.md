@@ -1,6 +1,6 @@
 # JASS-ANTLR-Kotlin-VSCode
 
-- Install [node.js](https://nodejs.org) (optional)
+- Install [node.js](https://nodejs.org)
 - Install [JDK23](https://www.oracle.com/cis/java/technologies/downloads/#jdk23-windows)
 - Reboot PC
 - Check the installation by typing the `java --version` in the terminal:

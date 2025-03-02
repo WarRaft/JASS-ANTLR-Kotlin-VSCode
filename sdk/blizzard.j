@@ -1265,8 +1265,6 @@ function GetRectFromCircleBJ takes location center, real radius returns rect
 	return Rect(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
 endfunction
 
-
-
 //***************************************************************************
 //*
 //*  Camera Utility Functions
