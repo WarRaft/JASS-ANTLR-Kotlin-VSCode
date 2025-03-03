@@ -1,4 +1,4 @@
-# JASS-ANTLR-Kotlin-VSCode
+# Install
 
 - Install [node.js](https://nodejs.org)
 - Install [JDK23](https://www.oracle.com/cis/java/technologies/downloads/#jdk23-windows)

@@ -131,6 +131,22 @@
           "dark": "./icons/zinc.svg"
         },
         "configuration": "./syntaxes/zinc.language-configuration.json"
+      },
+      {
+        "id": "wts",
+        "aliases": [
+          "Warcraft Text String",
+          "WTS",
+          "wts"
+        ],
+        "extensions": [
+          ".wts"
+        ],
+        "icon": {
+          "light": "./icons/wts.svg",
+          "dark": "./icons/wts.svg"
+        },
+        "configuration": "./syntaxes/wts.language-configuration.json"
       }
     ],
     "formatters": [

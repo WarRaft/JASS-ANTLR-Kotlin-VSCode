@@ -101,6 +101,10 @@ module.exports = {
                     {
                         scheme: 'file',
                         language: 'zinc',
+                    },
+                    {
+                        scheme: 'file',
+                        language: 'wts',
                     }
                 ],
                 middleware: {
