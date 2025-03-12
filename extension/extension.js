@@ -92,6 +92,10 @@ module.exports = {
                 documentSelector: [
                     {
                         scheme: 'file',
+                        language: 'angelscript',
+                    },
+                    {
+                        scheme: 'file',
                         language: 'jass',
                     },
                     {
@@ -141,7 +145,7 @@ module.exports = {
             title: 'Scan Files...',
             cancellable: false,
         }, async progress => {
-            const files = await workspace.findFiles('**/*.{j,vj,zn}', '**/{node_modules,.git}/**')
+            const files = await workspace.findFiles('**/*.{j,vj,zn,wts}', '**/{node_modules,.git}/**')
             let count = 0
             for (const file of files) {
                 count++

@@ -8,7 +8,7 @@
   "contributors": [],
   "description": "Tools for develop WarCraft III maps.",
   "private": false,
-  "icon": "images/logo.jpg",
+  "icon": "images/logo.png",
   "pricing": "Free",
   "keywords": [
     "warcraft",
@@ -87,6 +87,21 @@
       }
     },
     "languages": [
+      {
+        "id": "angelscript",
+        "aliases": [
+          "AngelScript",
+          "angelscript"
+        ],
+        "extensions": [
+          ".as"
+        ],
+        "icon": {
+          "light": "./icons/as.svg",
+          "dark": "./icons/as.svg"
+        },
+        "configuration": "./syntaxes/as.language-configuration.json"
+      },
       {
         "id": "jass",
         "aliases": [
