@@ -2,7 +2,7 @@
 
 const {LanguageClient} = require('vscode-languageclient')
 // noinspection NpmUsedModulesInstalled
-const {workspace, window, Uri, TreeItem, EventEmitter, ConfigurationTarget} = require('vscode')
+const {workspace, window, Uri, TreeItem, EventEmitter, ConfigurationTarget, commands} = require('vscode')
 const {settingsScriptList} = require('./js/settingsScriptList')
 const {W3} = require('./js/variables')
 const {execFile} = require('child_process')
@@ -23,6 +23,8 @@ module.exports = {
 
     /** @param {ExtensionContext} context */
     async activate(context) {
+        activateTxt2(context)
+
         const uri = Uri.file(path.join(__dirname, 'jass-antlr-lsp.jar'))
 
         try {
@@ -109,6 +111,10 @@ module.exports = {
                     {
                         scheme: 'file',
                         language: 'wts',
+                    },
+                    {
+                        scheme: 'file',
+                        language: 'bni',
                     }
                 ],
                 middleware: {
@@ -168,3 +174,78 @@ module.exports = {
 }
 
 // https://code.visualstudio.com/api/references/contribution-points#contributes.configuration
+
+
+function activateTxt2(context) {
+    let disposable = commands.registerCommand('txt2.showPreview', function () {
+        const editor = window.activeTextEditor
+        if (!editor || editor.document.languageId !== 'txt2') {
+            window.showWarningMessage('Откройте файл .txt2 для предпросмотра')
+            return
+        }
+
+        const panel = window.createWebviewPanel(
+            'txt2Preview',
+            'TXT2 Preview',
+            //ViewColumn.Beside,
+            -2,
+            {enableScripts: true}
+        )
+
+        function updateWebview() {
+            const text = editor.document.getText()
+            panel.webview.postMessage({type: 'update', content: text})
+        }
+
+        panel.webview.html = getWebviewContent()
+        updateWebview()
+
+        workspace.onDidChangeTextDocument((event) => {
+            if (event.document === editor.document) updateWebview()
+        })
+
+        panel.webview.onDidReceiveMessage((message) => {
+            if (message.type === 'getText') {
+                updateWebview()
+            }
+        })
+    })
+
+    context.subscriptions.push(disposable)
+}
+
+function getWebviewContent() {
+    return `<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: sans-serif; padding: 10px; }
+        b { color: #ff9900; }
+        i { color: #6666ff; }
+        .comment { color: #888; font-style: italic; }
+      </style>
+    </head>
+    <body>
+      <div id="preview"></div>
+      <script>
+        const vscode = acquireVsCodeApi();
+
+        window.addEventListener('message', (event) => {
+          if (event.data.type === 'update') {
+            document.getElementById('preview').innerHTML = parseTxt2(event.data.content);
+          }
+        });
+
+        vscode.postMessage({ type: 'getText' });
+
+        function parseTxt2(text) {
+          text = text.replace(/\\*(.*?)\\*/g, '<b>$1</b>');  // *жирный*
+          text = text.replace(/_(.*?)_/g, '<i>$1</i>');      // _курсив_
+          //text = text.replace(/\\(.*)/g, '<span class="comment">//$1</span>'); // // комментарий
+          return text.replace(/\\n/g, '<br>');  // Перенос строк
+        }
+      </script>
+    </body>
+    </html>`
+}

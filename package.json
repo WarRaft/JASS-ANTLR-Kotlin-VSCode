@@ -86,7 +86,41 @@
         }
       }
     },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "txt2.showPreview",
+          "when": "editorLangId == txt2",
+          "group": "navigation",
+          "icon": {
+            "light": "./icons/preview.svg",
+            "dark": "./icons/preview.svg"
+          }
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "txt2.showPreview",
+        "title": "Show TXT2 Preview",
+        "icon": {
+          "light": "./icons/preview.svg",
+          "dark": "./icons/preview.svg"
+        }
+      }
+    ],
     "languages": [
+      {
+        "id": "txt2",
+        "aliases": [
+          "TXT2",
+          "txt2"
+        ],
+        "extensions": [
+          ".txt2"
+        ],
+        "configuration": "./syntaxes/txt2.language-configuration.json"
+      },
       {
         "id": "angelscript",
         "aliases": [
@@ -160,6 +194,21 @@
         "icon": {
           "light": "./icons/wts.svg",
           "dark": "./icons/wts.svg"
+        },
+        "configuration": "./syntaxes/wts.language-configuration.json"
+      },
+      {
+        "id": "bni",
+        "aliases": [
+          "Blizzard Notation INI",
+          "bni"
+        ],
+        "extensions": [
+          ".bni"
+        ],
+        "icon": {
+          "light": "./icons/bni.svg",
+          "dark": "./icons/bni.svg"
         },
         "configuration": "./syntaxes/wts.language-configuration.json"
       }
