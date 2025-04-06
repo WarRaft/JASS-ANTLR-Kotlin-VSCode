@@ -115,6 +115,10 @@ module.exports = {
                     {
                         scheme: 'file',
                         language: 'bni',
+                    },
+                    {
+                        scheme: 'file',
+                        language: 'slk',
                     }
                 ],
                 middleware: {

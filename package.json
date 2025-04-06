@@ -15,7 +15,7 @@
     "ujapi"
   ],
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.98.0"
   },
   "categories": [
     "Programming Languages"
@@ -41,8 +41,8 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@types/vscode": "^1.96.0",
-    "@vscode/vsce": "^3.2.2"
+    "@types/vscode": "^1.98.0",
+    "@vscode/vsce": "^3.3.1"
   },
   "configurationDefaults": {
     "jass": {
@@ -184,7 +184,7 @@
       {
         "id": "wts",
         "aliases": [
-          "Warcraft Trigger Strings",
+          "Warcraft Trigger String",
           "WTS",
           "wts"
         ],
@@ -209,6 +209,21 @@
         "icon": {
           "light": "./icons/bni.svg",
           "dark": "./icons/bni.svg"
+        },
+        "configuration": "./syntaxes/wts.language-configuration.json"
+      },
+      {
+        "id": "slk",
+        "aliases": [
+          "SYmbolic LinK",
+          "slk"
+        ],
+        "extensions": [
+          ".slk"
+        ],
+        "icon": {
+          "light": "./icons/slk.svg",
+          "dark": "./icons/slk.svg"
         },
         "configuration": "./syntaxes/wts.language-configuration.json"
       }
