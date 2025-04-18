@@ -2,7 +2,17 @@
 
 const {LanguageClient} = require('vscode-languageclient')
 // noinspection NpmUsedModulesInstalled
-const {workspace, window, Uri, TreeItem, EventEmitter, ConfigurationTarget, commands} = require('vscode')
+const {
+    workspace,
+    window,
+    Uri,
+    TreeItem,
+    EventEmitter,
+    ConfigurationTarget,
+    commands,
+    WorkspaceEdit,
+    Range
+} = require('vscode')
 const {settingsScriptList} = require('./js/settingsScriptList')
 const {W3} = require('./js/variables')
 const {execFile} = require('child_process')
@@ -14,17 +24,13 @@ const path = require('path')
  */
 
 /** @type {LanguageClient} */ let client
-
-// https://code.visualstudio.com/api/working-with-extensions/publishing-extension
-
-// https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
+/** @type {Map<String, Uri>} */ const previewMap = new Map()
 
 module.exports = {
 
+
     /** @param {ExtensionContext} context */
     async activate(context) {
-        activateTxt2(context)
-
         const uri = Uri.file(path.join(__dirname, 'jass-antlr-lsp.jar'))
 
         try {
@@ -149,7 +155,6 @@ module.exports = {
 
         await client.start()
 
-
         await window.withProgress({
             location: 10, //location: vscode.ProgressLocation.Window,
             title: 'Scan Files...',
@@ -169,6 +174,81 @@ module.exports = {
         })
 
         window.createTreeView(W3, treeViewOptions)
+
+        context.subscriptions.push(
+            commands.registerCommand('txt2.showPreview', function () {
+                const editor = window.activeTextEditor
+                if (!editor || editor.document.languageId !== 'txt2') {
+                    window.showWarningMessage('Откройте файл .txt2 для предпросмотра')
+                    return
+                }
+
+                const panel = window.createWebviewPanel(
+                    'txt2Preview',
+                    'TXT2 Preview',
+                    -2,
+                    {enableScripts: true}
+                )
+
+                function updateWebview() {
+                    const text = editor.document.getText()
+                    panel.webview.postMessage({type: 'update', content: text})
+                }
+
+                panel.webview.html = getWebviewContent()
+                updateWebview()
+
+                workspace.onDidChangeTextDocument(event => {
+                    if (event.document === editor.document) updateWebview()
+                })
+
+                panel.webview.onDidReceiveMessage(message => {
+                    if (message.type === 'getText') {
+                        updateWebview()
+                    }
+                })
+            }),
+            commands.registerCommand('jass2as.preview', async uri => {
+                if (previewMap.has(uri.toString())) return
+
+                const document = await workspace.openTextDocument(uri)
+                const converted = await client.sendRequest('jass/convert/as', document.getText())
+
+                const previewDoc = await workspace.openTextDocument({
+                    content: converted,
+                    language: 'angelscript'
+                })
+                window.showTextDocument(previewDoc, -2)
+
+                previewMap.set(uri.toString(), previewDoc.uri)
+            }),
+            workspace.onDidSaveTextDocument(async textDocument => {
+                const uri = textDocument.uri.toString()
+
+                if (textDocument.languageId === 'jass' && previewMap.has(uri)) {
+                    const previewUri = previewMap.get(uri)
+                    const previewDoc = workspace.textDocuments.find(doc => doc.uri.toString() === previewUri.toString())
+
+                    if (previewDoc) {
+                        const converted = await client.sendRequest('jass/convert/as', textDocument.getText())
+
+                        const edit = new WorkspaceEdit()
+                        edit.replace(previewDoc.uri, new Range(
+                            previewDoc.positionAt(0),
+                            previewDoc.positionAt(previewDoc.getText().length)
+                        ), converted)
+                        await workspace.applyEdit(edit)
+                    }
+                }
+            }),
+            workspace.onDidCloseTextDocument(closedDoc => {
+                for (const [originalUri, previewUri] of previewMap.entries()) {
+                    if (previewUri.toString() === closedDoc.uri.toString()) {
+                        previewMap.delete(originalUri)
+                    }
+                }
+            })
+        )
     },
 
     async deactivate() {
@@ -178,45 +258,6 @@ module.exports = {
 }
 
 // https://code.visualstudio.com/api/references/contribution-points#contributes.configuration
-
-
-function activateTxt2(context) {
-    let disposable = commands.registerCommand('txt2.showPreview', function () {
-        const editor = window.activeTextEditor
-        if (!editor || editor.document.languageId !== 'txt2') {
-            window.showWarningMessage('Откройте файл .txt2 для предпросмотра')
-            return
-        }
-
-        const panel = window.createWebviewPanel(
-            'txt2Preview',
-            'TXT2 Preview',
-            //ViewColumn.Beside,
-            -2,
-            {enableScripts: true}
-        )
-
-        function updateWebview() {
-            const text = editor.document.getText()
-            panel.webview.postMessage({type: 'update', content: text})
-        }
-
-        panel.webview.html = getWebviewContent()
-        updateWebview()
-
-        workspace.onDidChangeTextDocument((event) => {
-            if (event.document === editor.document) updateWebview()
-        })
-
-        panel.webview.onDidReceiveMessage((message) => {
-            if (message.type === 'getText') {
-                updateWebview()
-            }
-        })
-    })
-
-    context.subscriptions.push(disposable)
-}
 
 function getWebviewContent() {
     return `<!DOCTYPE html>
@@ -253,3 +294,7 @@ function getWebviewContent() {
     </body>
     </html>`
 }
+
+// https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+
+// https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
